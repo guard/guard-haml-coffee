@@ -26,10 +26,7 @@ module Guard
 
     def start
       Compat::UI.info('Guard::HamlCoffee has started watching your files', {})
-      source = File.read(::CoffeeScript::Source.path) + ';'
-      source += load_config('../haml-coffee/hamlcoffee.js') + ';'
-      source += load_config('../haml-coffee/hamlcoffee_compiler.js')
-      @runtime = ExecJS.compile(source)
+      prepare
     end
 
     # Get the file path to output the html based on the file being
@@ -79,40 +76,58 @@ module Guard
         basename = File.basename(path, '.js.hamlc')
         output_file = get_output(path)
         FileUtils.mkdir_p File.dirname(output_file)
-        options = [
-          basename,
-          File.read(path),
-          true, # jst
-          nil, # namespace
-          nil, # format
-          false, # uglify
-          basename,
-          nil, # escapeHtml
-          nil, # escapeAttributes
-          nil, # cleanValue
-          nil, # customHtmlEscape
-          nil, # customCleanValue
-          nil, # customPreserve
-          nil, # customFindAndPreserve
-          nil, # customSurround
-          nil, # customSucceed
-          nil, # customPrecede
-          nil, # preserveTags
-          nil, # selfCloseTags
-          false, # context
-          nil, # extendScope
-        ]
-        output = @runtime.call('HamlCoffeeCompiler.compile', *options)
+        output = compile(basename, File.read(path))
         File.open(output_file, "w") { |f| f.write output }
-        ::Guard::UI.info "# compiled haml coffee in '#{path}' to js in '#{output_file}'"
+        Compat::UI.info "# compiled haml coffee in '#{path}' to js in '#{output_file}'"
       end
     rescue StandardError => error
-      ::Guard::UI.error "Guard Haml Coffee Error: " + error.message
+      Compat::UI.error "Guard Haml Coffee Error: " + error.message
       throw :task_has_failed
     end
 
     def load_config(file)
       File.read(File.expand_path(file, __FILE__))
+    end
+
+    def prepare
+      runtime
+    end
+
+    def runtime
+      @runtime ||=
+        begin
+          source = File.read(::CoffeeScript::Source.path) + ';'
+          source += load_config('../haml-coffee/hamlcoffee.js') + ';'
+          source += load_config('../haml-coffee/hamlcoffee_compiler.js')
+          ExecJS.compile(source)
+        end
+    end
+
+    def compile(basename, code)
+      options = [
+        basename,
+        code,
+        true, # jst
+        nil, # namespace
+        nil, # format
+        false, # uglify
+        basename,
+        nil, # escapeHtml
+        nil, # escapeAttributes
+        nil, # cleanValue
+        nil, # customHtmlEscape
+        nil, # customCleanValue
+        nil, # customPreserve
+        nil, # customFindAndPreserve
+        nil, # customSurround
+        nil, # customSucceed
+        nil, # customPrecede
+        nil, # preserveTags
+        nil, # selfCloseTags
+        false, # context
+        nil, # extendScope
+      ]
+      runtime.call('HamlCoffeeCompiler.compile', *options)
     end
   end
 end
