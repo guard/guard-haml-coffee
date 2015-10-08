@@ -82,25 +82,25 @@ module Guard
         options = [
           basename,
           File.read(path),
-          jst = true,
-          namespace = nil,
-          format = nil,
-          uglify = false,
+          true, # jst
+          nil, # namespace
+          nil, # format
+          false, # uglify
           basename,
-          escapeHtml = nil,
-          escapeAttributes = nil,
-          cleanValue = nil,
-          customHtmlEscape = nil,
-          customCleanValue = nil,
-          customPreserve = nil,
-          customFindAndPreserve = nil,
-          customSurround = nil,
-          customSucceed = nil,
-          customPrecede = nil,
-          preserveTags = nil,
-          selfCloseTags = nil,
-          context = false,
-          extendScope = nil,
+          nil, # escapeHtml
+          nil, # escapeAttributes
+          nil, # cleanValue
+          nil, # customHtmlEscape
+          nil, # customCleanValue
+          nil, # customPreserve
+          nil, # customFindAndPreserve
+          nil, # customSurround
+          nil, # customSucceed
+          nil, # customPrecede
+          nil, # preserveTags
+          nil, # selfCloseTags
+          false, # context
+          nil, # extendScope
         ]
         output = @runtime.call('HamlCoffeeCompiler.compile', *options)
         File.open(output_file, "w") { |f| f.write output }
