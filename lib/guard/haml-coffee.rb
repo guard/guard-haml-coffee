@@ -8,7 +8,7 @@ require 'coffee-script'
 module Guard
   class HamlCoffee < Plugin
     VALID_GUARD_OPTIONS = %i(watchers group callbacks)
-    VALID_OPTIONS = %i(object)
+    VALID_OPTIONS = %i(input output)
 
     def initialize(options = {})
       valid_options = VALID_OPTIONS + VALID_GUARD_OPTIONS
@@ -18,9 +18,7 @@ module Guard
         end
       end
 
-      @options = {
-        notifications: true
-      }.merge(options)
+      @options = options.dup
       super(@options)
     end
 
@@ -41,8 +39,11 @@ module Guard
 
       file_name = "#{file_name}.js" if file_name.match("\.js").nil?
 
-      file_dir = file_dir.gsub(Regexp.new("#{@options[:input]}(\/){0,1}"), '') if @options[:input]
-      file_dir = File.join(@options[:output], file_dir) if @options[:output]
+      input = @options[:input]
+      file_dir = file_dir.gsub(Regexp.new("#{input}(\/){0,1}"), '') if input
+
+      output = @options[:output]
+      file_dir = File.join(output, file_dir) if output
 
       if file_dir == ''
         file_name
@@ -77,7 +78,7 @@ module Guard
         output_file = get_output(path)
         FileUtils.mkdir_p File.dirname(output_file)
         output = compile(basename, File.read(path))
-        File.open(output_file, "w") { |f| f.write output }
+        File.write(output_file, output)
         Compat::UI.info "# compiled haml coffee in '#{path}' to js in '#{output_file}'"
       end
     rescue StandardError => error
