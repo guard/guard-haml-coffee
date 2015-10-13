@@ -20,6 +20,11 @@ RSpec.describe Guard::HamlCoffee do
       fail msg % args.map(&:inspect).join(',')
     end
 
+    allow(IO).to receive(:write) do |*args|
+      msg = 'unstubbed call to IO.write(%s)'
+      fail msg % args.map(&:inspect).join(',')
+    end
+
     # prepare method expecations
     allow(File).to receive(:expand_path).with('../coffee-script.js', anything).and_return('foo.js')
     allow(IO).to receive(:read).with('foo.js').and_return('foo')
@@ -57,6 +62,20 @@ RSpec.describe Guard::HamlCoffee do
 
     context 'with a Guard::Plugin callbacks option' do
       let(:options) { { callbacks: [] } }
+      it 'fails' do
+        expect { subject }.to_not raise_error
+      end
+    end
+
+    context 'with an input option' do
+      let(:options) { { input: 'foo' } }
+      it 'fails' do
+        expect { subject }.to_not raise_error
+      end
+    end
+
+    context 'with an output option' do
+      let(:options) { { output: 'foo' } }
       it 'fails' do
         expect { subject }.to_not raise_error
       end
@@ -148,6 +167,25 @@ RSpec.describe Guard::HamlCoffee do
 
       before do
         allow(IO).to receive(:read).with('foo.js.hamlc').and_return('foo')
+        allow(IO).to receive(:write).with('./foo.js', 'js output')
+
+        allow(runtime).to receive(:call).and_return(output)
+      end
+
+      it 'works' do
+        subject.run_on_changes(files)
+      end
+    end
+
+    context 'with input/output options' do
+      let(:options) { { input: 'foo_dir', output: 'bar_dir' } }
+
+      let(:files) { %w(foo_dir/bar/foo.js.hamlc) }
+      let(:output) { 'js output' }
+
+      before do
+        allow(IO).to receive(:read).with('foo_dir/bar/foo.js.hamlc').and_return('foo')
+        allow(IO).to receive(:write).with('bar_dir/bar/foo.js', 'js output')
 
         allow(runtime).to receive(:call).and_return(output)
       end
